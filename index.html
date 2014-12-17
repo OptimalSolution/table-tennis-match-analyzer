@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="fb:app_id" content="18085983762" />
+    <meta property="og:site_name" content="Table Tennis Match Analyzer"/>
+    <meta property="og:image" content="http://sterlingonlinesolutions.com/group-picture/img/logo-small.png"/>
+    <meta property="og:title" content="Table Tennis Match Analyzer"/>
+    <meta property="og:description" content="Examine different parts of your table tennis career: tournament performance, match statistics and game analysis."/>
+    <meta property="og:url" content="http://sterlingonlinesolutions.com/table-tennis-match-analyzer/"/>
+    <title>Table Tennis Match Analyzer</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
+    <script src="js/functions.js"></script>
+    <style type="text/css">
+    <!--
+      .nav-tabs li a { font-size: 16px }
+      .block-label { font-weight: bold; font-size: 20px }
+      .block-description { font-size: 14px }
+      .name-results td, .overview-stats a, .medium-text, .overview-stats { font-size: 16px }
+    -->
+    </style>
+  </head>
+  <body>
+    <div id="fb-root"></div>
+    <div class="container">
+        <div class="page-header">
+           <h1 class=''>Table Tennis Match Analyzer</h1>
+        </div>
+
+        <!-- Step 1: Name Input -->
+        <div class="row col-sm-12">
+          <div class="panel panel-info" data-bind="slideVisible: !player1()">
+            <div class="panel-heading">
+              <h3 class="panel-title">Step 1: Find your match records by entering your name</h3>
+            </div>
+            <div class="panel-body stat-area">
+                <div class="col-lg-6">
+                  <div class="input-group">
+                    <span class="input-group-btn">
+                      <button class="btn btn-default" type="button">Last*</button>
+                    </span>
+                    <input type="text" class="form-control" data-bind="value: lastName" placeholder="(Required)">
+                    <span class="input-group-btn">
+                      <button class="btn btn-default" type="button">First</button>
+                    </span>
+                    <input type="text" class="form-control" placeholder="(Optional)" data-bind="value: firstName">
+                  </div><!-- /input-group -->
+                  <button class='btn btn-primary' data-bind="click: lookupPlayer" style='margin-top: 15px'>Lookup USATT Match Records &raquo;</button>
+                </div><!-- /.col-lg-6 -->
+            </div>
+            <table class="table name-results" data-bind="fadeVisible: names_found().length > 0">
+                <thead>
+                  <tr style='font-weight: bold; background-color: #FFF5C0; font-size: 20px;'>
+                    <td></td>
+                    <td>Name</td>
+                    <td>Rating</td>
+                    <td>State</td>
+                  </tr>
+                </thead>
+                <tbody data-bind="foreach: names_found">
+                    <tr>
+                      <td><a class="btn btn-info btn-xs" data-bind="click: $root.selectPlayer">Select &raquo;</a></td>
+                      <td data-bind="text: name"></td>
+                      <td data-bind="text: rating"></td>
+                      <td data-bind="text: state"></td>
+                    </tr>
+                </tbody>
+            </table>
+          </div>
+        </div><!-- /Step 1 -->
+
+        <!-- Stats -->
+        <div class="row col-sm-12">
+          <div class="panel panel-info" data-bind="slideVisible: player1()">
+            <div class="panel-heading">
+              <h3 class="panel-title">Step 2: Analyze Your Games</h3>
+            </div>
+            <div class="panel-body stat-area" role="tabpanel">
+              <h4 style="margin-bottom: 20px">Player: <strong style='color: darkblue' data-bind="text: player1().fullName"></strong> - Rating: <strong data-bind="text: player1().rating"></strong>
+                <button class="pull-right btn btn-xs btn-danger" data-bind="click: $root.startOver">Start Over &raquo;</button>
+              </h4>
+              <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation"><a href="#tournaments" aria-controls="tournaments" role="tab" data-toggle="tab" >Tournaments</a></li>
+                <li role="presentation"  class="active"><a href="#matches" role="tab" data-toggle="tab">Matches</a></li>
+                <li role="presentation"><a href="#games" role="tab" data-toggle="tab">Games</a></li>
+                <li role="presentation" class="disabled"><a>vs. Specific Players</a></li>
+              </ul>
+              <div class="tab-content" style="padding-top: 15px">
+                <!--*************************-->
+                <!--*     Tournaments       *-->
+                <!--*************************-->
+                <div role="tabpanel" class="tab-pane" id="tournaments" data-bind="with: tournaments">
+                  <div class="well">
+                      <p>
+                        <span class="block-label" data-bind="text: name"></span><br/><br/>
+                        <span class="block-description" data-bind="text: description"></span>
+                      </p>
+                  </div>
+
+                  <div class="row col-lg-12">
+                    <div class="overview-stats list-group">
+                      <a class="list-group-item">Total Tournaments: <span class="pull-right" data-bind="text: played()"></span></a>
+                      <a class="list-group-item">w/ Winning Ratio: <span class="pull-right" data-bind="text: wins()"></span></a>
+                      <a class="list-group-item">w/ Losing Ratio: <span class="pull-right" data-bind="text: losses()"></span></a>
+                    </div>
+                  </div>
+                  <div class="row col-lg-12">
+                    <div class="panel panel-info">
+                      <div class="panel-heading">
+                        <h3 class="panel-title">Most Recent Tournaments</h3>
+                      </div>
+                      <table class="table overview-stats">
+                        <thead>
+                          <tr style="font-weight: bold">
+                            <td>Date</td>
+                            <td>Name</td>
+                            <td>Record</td>
+                          </tr>
+                        </thead>
+                        <tbody data-bind="foreach: sessions.slice(0,3)">
+                          <tr>
+                            <td data-bind="text: date"></td>
+                            <td data-bind="text: name"></td>
+                            <td data-bind="text: record"></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                <!--*************************-->
+                <!--*        Matches        *-->
+                <!--*************************-->
+                <div role="tabpanel" class="tab-pane active" id="matches">
+                  <div data-bind="template: { name: 'analysis-template', data: matches }"></div>
+                  <div data-bind="template: { name: 'stat-template', data: sweeps }"></div>
+                  <div data-bind="template: { name: 'stat-template', data: blowouts }"></div>
+                </div>
+                <!--*************************-->
+                <!--*        Games          *-->
+                <!--*************************-->
+                <div role="tabpanel" class="tab-pane" id="games">
+                  <div data-bind="template: { name: 'analysis-template', data: games }"></div>
+                  <div data-bind="template: { name: 'analysis-template', data: deuces }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /Stats -->
+    </div><!-- /.container -->
+    <div id="pre-loading-area" style="height: 800px; width: 100%"></div>
+    <div id="loading-area" style="height: 800px; width: 100%"></div>
+
+    <!-- Analysis Template -->
+    <script type="text/html" id="analysis-template">
+        <div class="well" style="">
+            <p>
+              <span class="block-label" data-bind="text: name"></span><br/>
+              <span data-bind="text: description"></span>
+            </p>
+
+            Win Percentage: <span data-bind="text: win_percentage()"></span><br/>
+            Wins: <span data-bind="text: wins()"></span><br/>
+            Losses: <span data-bind="text: losses()"></span><br/>
+            Played: <span data-bind="text: played()"></span><br/>
+        </div>
+    </script>
+
+    <!-- Stat Template -->
+    <script type="text/html" id="stat-template">
+      <div class="panel panel-primary">
+        <div class="panel-heading"><strong data-bind="text: name"></strong>: <span data-bind="text: wins()"></span></div>
+        <div class="panel-body">
+            <span class="stat-label" data-bind="html: description"></span>
+        </div>
+        <table class="table">
+          <thead>
+            <tr style="font-weight: bold" class="medium-text"><td>Your Opponent</td><td>Tournament</td><td>Details</td></tr>
+          </thead>
+          <tbody data-bind="foreach: sessions.slice(0,3)">
+            <tr><td data-bind="text: name"></td><td data-bind="text: tournament"></td></td><td><a data-bind="href: link" class="btn btn-warning btn-xs" target="_blank">View match &raquo;</a></tr>
+          </tbody>
+        </table>
+      </div>
+    </script>
+
+      <script>
+          // GA Tracking
+          /*
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-12789796-5', 'sterlingonlinesolutions.com');
+          ga('send', 'pageview');*/
+      </script>
+      <!-- Include all compiled plugins (below), or include individual files as needed -->
+      <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+  </body>
+</html>
