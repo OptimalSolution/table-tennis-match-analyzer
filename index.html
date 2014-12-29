@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
+    <script src="js/knockout-min.js"></script>
     <script src="js/functions.js"></script>
     <style type="text/css">
     <!--
@@ -25,6 +25,8 @@
       .block-label { font-weight: bold; font-size: 20px }
       .block-description { font-size: 14px }
       .name-results td, .overview-stats a, .medium-text, .overview-stats { font-size: 16px }
+      .Won { font-weight: bold; color: #0A0 }
+      .Lost { font-weight: bold; color: #A00 }
     -->
     </style>
   </head>
@@ -85,7 +87,7 @@
             </div>
             <div class="panel-body stat-area" role="tabpanel">
               <h4 style="margin-bottom: 20px">Player: <strong style='color: darkblue' data-bind="text: player1().fullName"></strong> - Rating: <strong data-bind="text: player1().rating"></strong>
-                <button class="pull-right btn btn-xs btn-danger" data-bind="click: $root.startOver">Start Over &raquo;</button>
+                <!-- button class="pull-right btn btn-xs btn-danger" data-bind="click: $root.startOver">Start Over &raquo;</button-->
               </h4>
               <ul class="nav nav-tabs" role="tablist">
                 <li role="presentation"><a href="#tournaments" aria-controls="tournaments" role="tab" data-toggle="tab" >Tournaments</a></li>
@@ -98,13 +100,6 @@
                 <!--*     Tournaments       *-->
                 <!--*************************-->
                 <div role="tabpanel" class="tab-pane" id="tournaments" data-bind="with: tournaments">
-                  <div class="well">
-                      <p>
-                        <span class="block-label" data-bind="text: name"></span><br/><br/>
-                        <span class="block-description" data-bind="text: description"></span>
-                      </p>
-                  </div>
-
                   <div class="row col-lg-12">
                     <div class="overview-stats list-group">
                       <a class="list-group-item">Total Tournaments: <span class="pull-right" data-bind="text: played()"></span></a>
@@ -117,19 +112,21 @@
                       <div class="panel-heading">
                         <h3 class="panel-title">Most Recent Tournaments</h3>
                       </div>
-                      <table class="table overview-stats">
+                      <table class="table">
                         <thead>
                           <tr style="font-weight: bold">
                             <td>Date</td>
                             <td>Name</td>
                             <td>Record</td>
+                            <td></td>
                           </tr>
                         </thead>
-                        <tbody data-bind="foreach: sessions.slice(0,3)">
+                        <tbody data-bind="foreach: show_sessions()">
                           <tr>
                             <td data-bind="text: date"></td>
                             <td data-bind="text: name"></td>
                             <td data-bind="text: record"></td>
+                            <td><a data-bind="attr: { href: url }" class="btn btn-warning btn-xs" target="_blank">View Results &raquo;</a></td>
                           </tr>
                         </tbody>
                       </table>
@@ -141,6 +138,7 @@
                 <!--*************************-->
                 <div role="tabpanel" class="tab-pane active" id="matches">
                   <div data-bind="template: { name: 'analysis-template', data: matches }"></div>
+                  <div data-bind="template: { name: 'event-template', data: playoffs }"></div>
                   <div data-bind="template: { name: 'stat-template', data: sweeps }"></div>
                   <div data-bind="template: { name: 'stat-template', data: blowouts }"></div>
                 </div>
@@ -174,19 +172,53 @@
         </div>
     </script>
 
-    <!-- Stat Template -->
-    <script type="text/html" id="stat-template">
+    <!-- Event Template -->
+    <script type="text/html" id="event-template">
       <div class="panel panel-primary">
-        <div class="panel-heading"><strong data-bind="text: name"></strong>: <span data-bind="text: wins()"></span></div>
+        <div class="panel-heading"><span class=""><strong style="font-size: 18px;" data-bind="text: name"></strong>: <span data-bind="text: wins()"></span></span> <span class="pull-right"><span data-bind="text: (wins() / $root.matches.played() * 100).toFixed(1)"></span>% of your matches</span></div>
         <div class="panel-body">
             <span class="stat-label" data-bind="html: description"></span>
         </div>
         <table class="table">
           <thead>
-            <tr style="font-weight: bold" class="medium-text"><td>Your Opponent</td><td>Tournament</td><td>Details</td></tr>
+            <tr style="font-weight: bold" class="medium-text text-primary">
+              <td>Event</td>
+              <td>Tournament</td>
+              <td>Result</td>
+              <td>Details</td></tr>
           </thead>
-          <tbody data-bind="foreach: sessions.slice(0,3)">
-            <tr><td data-bind="text: name"></td><td data-bind="text: tournament"></td></td><td><a data-bind="href: link" class="btn btn-warning btn-xs" target="_blank">View match &raquo;</a></tr>
+          <tbody data-bind="foreach: show_sessions()">
+            <tr>
+              <td data-bind="text: name"></td>
+              <td data-bind="text: tournament"></td>
+              <td data-bind="text: result, css: result"></td>
+              <td><a data-bind="attr: { href: url }" class="btn btn-warning btn-xs" target="_blank">View Records &raquo;</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </script>
+
+    <!-- Stat Template -->
+    <script type="text/html" id="stat-template">
+      <div class="panel panel-primary">
+        <div data-bind="attr: { id: name }" class="panel-heading"><span class=""><strong style="font-size: 18px;" data-bind="text: name"></strong>: <span data-bind="text: wins()"></span></span> <span class="pull-right"><span data-bind="text: (wins() / $root.matches.played() * 100).toFixed(1)"></span>% of your matches</span></div>
+        <div class="panel-body">
+            <span class="stat-label" data-bind="html: description"></span>
+        </div>
+        <table class="table">
+          <thead>
+            <tr style="font-weight: bold" class="medium-text text-primary">
+              <td>Your Opponent</td>
+              <td>Tournament</td>
+              <td>Details</td></tr>
+          </thead>
+          <tbody data-bind="foreach: show_sessions()">
+            <tr>
+              <td data-bind="text: name"></td>
+              <td data-bind="text: tournament"></td>
+              <td><a data-bind="attr: { href: url }" class="btn btn-warning btn-xs" target="_blank">View Match &raquo;</a></td>
+            </tr>
           </tbody>
         </table>
       </div>
