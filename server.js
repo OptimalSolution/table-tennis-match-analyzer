@@ -5,6 +5,8 @@ var fs = require('fs');
 var express = require('express');
 var app = express();
 
+console.log('>>> Setting up application...');
+
 app.engine('ejs', require('ejs').__express);
 
 app.get('/', function(req, res){
@@ -100,6 +102,7 @@ app.get('/fetch/tournament', function(req, res){
     }
 });
 
+console.log('>>> Starting Express Server...');
 var server = app.listen(8080, function() {
-    console.log('Listening on port %d', server.address().port);
+    console.log('****** SERVER STARTED -- Port: %d *******', server.address().port);
 });
