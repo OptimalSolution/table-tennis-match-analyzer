@@ -112,6 +112,8 @@ function StatsViewModel() {
     self.sweeps   = new StatGroup('Sweeps', "A <strong>sweep</strong> is a match where you didn't lose a single game! For example: 3-0");
     self.blowouts = new StatGroup('Blowouts', "A <strong>blowout</strong> is a match where you didn't win a single game! For example: 0-3");
     self.playoffs = new StatGroup('Playoffs', "A <strong>playoff</strong> match is a match that takes place <em>after</em> the round robin group. For example: Open Singles Final");
+    self.nail_biters = new StatGroup('Nail Biters', "A <strong>nail biter</strong> is a close match down to the final game! For example: 9-11 in the 5th game or Deuce in the 7th");
+    self.comebacks = new StatGroup('Comebacks', "A <strong>comeback</strong> is match where you are about to be swept and turn things around to victory in the final game! For example: You are down 0-2 and win in the 5th");
 
     self.games    = new StatGroup('Games', "Here's a breakdown of how you did in individual games");
     self.deuces   = new StatGroup('Deuces', "When the score becomes 10-10, the game is tied at deuce. How do you do in those situations?");
@@ -186,10 +188,15 @@ function StatsViewModel() {
                       $('#loading-area').html('').append(html.replace('<link', '<meta'));
                       var parsing_wins = true;
 
-                      // Parse each of the rows of the tournament results
+                      /*******************************
+                       * Match Processing
+                       *
+                       * Parse each of the rows of
+                       * the tournament results
+                       *******************************/
                       $('#loading-area > table tbody').children().slice(2, -1).each(function(i, match) {
 
-                          //console.log('*** New Row ***')
+                          //console.log('*** New Match ***')
                           if(parsing_wins && $(match).text().trim() == "Losses") {
                             //  console.log('>>> Parsing Losses <<<')
                               parsing_wins = false;
@@ -207,10 +214,14 @@ function StatsViewModel() {
                                   this_record   = match_info[4];
 
                               if(match_title && opponent_name) {
+
                                   //console.log('Title: ' + match_title + ' vs. ' + opponent_name + ' // Record: ' + this_record);
                                   var games = this_record.split(',').map($.trim);
+                                  var stat             = new Record(this_tournament.date, opponent_name, this_tournament.link);
+                                  stat.tournament      = this_tournament.name;
+                                  stat.result          = (parsing_wins) ? 'Won' : 'Lost';
 
-                                  // Determine if this match is a big deal
+                                  /**** Playoff matches *****/
                                   if(match_title.search(/rr/i) < 0 &&
                                     (match_title.search(/final/i) >= 0 ||
                                      match_title.search(/quarter/i) >= 0 ||
@@ -218,10 +229,8 @@ function StatsViewModel() {
 
                                       //console.log('Match title: ' + match_title);
                                       //console.log('Link: ' + this_tournament.link);
-
-                                      var stat        = new Record(this_tournament.date, match_title, this_tournament.link);
-                                      stat.tournament = this_tournament.name;
-                                      stat.result     = (parsing_wins) ? 'Won' : 'Lost';
+                                      //var stat        = new Record(this_tournament.date, match_title, this_tournament.link);
+                                      stat.name = match_title;
                                       self.playoffs.sessions.push(stat);
 
                                       if(parsing_wins) {
@@ -230,14 +239,33 @@ function StatsViewModel() {
                                       else {
                                           self.playoffs.losses(self.playoffs.losses() + 1);
                                       }
-
                                   }
 
-                                  // Parse VALID game data
+                                  /***** Nail biters (5th game and close) *****/
+                                  if((games.length == 5 || games.length == 7) && games.length && Math.abs(games[games.length-1]) >= 8) {
+
+                                    //console.log('Match vs %s went to %d in %d games', opponent_name, Math.abs(games[games.length-1]), games.length)
+                                    stat.name = opponent_name;
+                                    self.nail_biters.sessions.push(stat);
+                                    if(parsing_wins) {
+                                      self.nail_biters.wins(self.nail_biters.wins() + 1);
+                                    }
+                                    else {
+                                      self.nail_biters.losses(self.nail_biters.losses() + 1);
+                                    }
+                                  }
+
+                                  /*************************
+                                   * Game Processing
+                                   *
+                                   * Proper matches are always
+                                   * 3 games or more
+                                   *************************/
                                   if(games.length >= 3) {
 
-                                      var wins = 0, losses = 0;
+                                      var wins = 0, losses = 0, series = '', last_game = 0;
                                       games.forEach(function(game) {
+                                          last_game = game;
 
                                           // When there's a - sign
                                           if(game.indexOf('-') >= 0) {
@@ -245,6 +273,7 @@ function StatsViewModel() {
                                               // When parsing the "Wins" table, a minus sign means a loss.
                                               if(parsing_wins) {
                                                   losses++;
+                                                  series += 'L';
                                                   self.games.losses(self.games.losses() + 1);
                                                   if(game <= -10) {
                                                       self.deuces.losses(self.deuces.losses() + 1);
@@ -253,6 +282,7 @@ function StatsViewModel() {
                                               // When parsing the "Losses" table, a minus sign means a win.
                                               else {
                                                   wins++;
+                                                  series += 'W';
                                                   self.games.wins(self.games.wins() + 1);
                                                   if(game <= -10) {
                                                       self.deuces.wins(self.deuces.wins() + 1);
@@ -263,6 +293,7 @@ function StatsViewModel() {
                                               // When there is no - sign
                                               if(parsing_wins) {
                                                   wins++;
+                                                  series += 'W';
                                                   self.games.wins(self.games.wins() + 1);
                                                   if(game >= 10) {
                                                       self.deuces.wins(self.deuces.wins() + 1);
@@ -271,6 +302,7 @@ function StatsViewModel() {
                                               else {
                                                   // When parsing the "Wins" table, a minus sign means losses
                                                   losses++;
+                                                  series += 'L';
                                                   self.games.losses(self.games.losses() + 1);
                                                   if(game >= 10) {
                                                       self.deuces.losses(self.deuces.losses() + 1);
@@ -286,19 +318,23 @@ function StatsViewModel() {
                                       // Sweeps & Blowouts
                                       if(wins >= 3 && losses == 0) {
                                           self.sweeps.wins(self.sweeps.wins() + 1);
-
-                                          var stat             = new Record(this_tournament.date, opponent_name, this_tournament.link);
-                                          stat.tournament      = this_tournament.name;
                                           self.sweeps.sessions.push(stat);
                                       }
                                       else if(losses > 0 && wins == 0) {
                                           self.blowouts.wins(self.blowouts.wins() + 1);
-
-                                          var stat             = new Record(this_tournament.date, opponent_name, this_tournament.link);
-                                          stat.tournament      = this_tournament.name;
                                           self.blowouts.sessions.push(stat);
-
                                       }
+
+                                      // Comebacks
+                                      if(series == 'LLWWW' || series == 'LLLWWWW') {
+                                          self.comebacks.wins(self.comebacks.wins() + 1);
+                                          self.comebacks.sessions.push(stat);
+                                      }
+
+                                      // Chokes
+
+
+
 
                                   }
                                   else {
