@@ -21,10 +21,10 @@ app.get('/js/:file', function(req, res){
 app.get('/fetch/names', function(req, res) {
 
     if(req.query && req.query.lastName) {
-        fs.exists('names-' + req.query.lastName + '.html', function(exists) {
+        fs.exists('cache/names-' + req.query.lastName + '.html', function(exists) {
             if(exists) {
                 console.log('>>> Names CACHE HIT');
-                fs.readFile('names-' + req.query.lastName + '.html', function(err, html) {
+                fs.readFile('cache/names-' + req.query.lastName + '.html', function(err, html) {
                     res.end(html);
                 })
             }
@@ -33,7 +33,7 @@ app.get('/fetch/names', function(req, res) {
                 console.log('** Fetching names for ' + req.query.lastName)
                 request('http://216.119.100.169/history/rating/History/Allplayers.asp?Alpha=' + req.query.lastName, function(err, data) {
                     res.end(data.body);
-                    fs.writeFile('names-' + req.query.lastName + '.html', data.body, function(err) {
+                    fs.writeFile('cache/names-' + req.query.lastName + '.html', data.body, function(err) {
                         console.log('Done caching names for: ' + req.query.id)
                     })
                 })
@@ -46,7 +46,7 @@ app.get('/fetch/names', function(req, res) {
 app.get('/fetch/tournaments', function(req, res){
 
     if(req.query && parseInt(req.query.id) > 0) {
-        var cache_file_name = 'tournaments-' + req.query.id + '.html';
+        var cache_file_name = 'cache/tournaments-' + req.query.id + '.html';
 
         console.log('** Fetching tournaments for ' + req.query.id)
         var forced_refresh = (req.query.refresh) ? true : false;
@@ -77,7 +77,7 @@ app.get('/fetch/tournament', function(req, res){
     console.log('Fetching tournament for ' + req.query.Pid)
     if(req.query.Pid && req.query.Tid) {
 
-        var cache_file_name = 'tournament-' + req.query.Tid + '-' + req.query.Pid + '.html';
+        var cache_file_name = 'cache/tournament-' + req.query.Tid + '-' + req.query.Pid + '.html';
 
         console.log('** Fetching tournament ' + req.query.Tid)
         var forced_refresh = (req.query.refresh) ? true : false;
