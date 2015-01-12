@@ -1,29 +1,15 @@
-//var usatt_id = '54127'; // Me
-//var usatt_id = '39942'; // Tahl
 
-// All the stats belonging to a person
-var stats = [], panels = [],
-    tournament_list, target_user,
-    tournaments_processed = 0,
-
-    tournament_lookup_url = 'http://216.119.100.169/history/rating/History/TResult.asp?',
-
-    match_wins   = 0, match_losses = 0,
-    games_played = 0, game_wins    = 0, game_losses = 0,
-    deuce_wins   = 0, deuce_losses = 0,
-
-    sweeps = 0, blowouts = 0;
-
-var Record = function(date, name, link) {
+// Lookup URL
+var Record = function (date, name, link) {
 
       var self    = this;
       self.date   = date;
       self.name   = name;
       self.link   = link;
-      self.url    = tournament_lookup_url + link;
+      self.url    = 'http://216.119.100.169/history/rating/History/TResult.asp?' + link;
 };
 
-var StatGroup = function(statName, description) {
+var StatGroup = function (statName, description) {
 
       var self         = this;
       self.name        = statName;
@@ -34,22 +20,22 @@ var StatGroup = function(statName, description) {
 
       self.show_sessions = ko.computed(function() {
           return self.sessions.slice(0,5);
-      }, self)
+      }, self);
 
       self.reset = function() {
           self.wins(0);
           self.losses(0);
           self.sessions.removeAll();
           console.log('Sessions removed from ' + self.name)
-      }
+      };
 
       self.played = ko.computed(function() {
           return self.wins() + self.losses();
-      }, self)
+      }, self);
 
       self.win_percentage = ko.computed(function() {
           return (self.wins() / self.played() * 100).toFixed(1) + '%';
-      }, self)
+      }, self);
 };
 
 var Player = function(name, rating, state, pid) {
@@ -62,11 +48,12 @@ var Player = function(name, rating, state, pid) {
     self.fullName = ko.computed(function() {
         var pieces = self.name.split(',');
         return pieces[1] + ' ' + pieces[0];
-    }, self)
+    }, self);
 };
 
+// Some sample players
 var sample_player = new Player('Sterling Jr, Daryl', '1741', 'CA', '54127');
-//var sample_player = new Player('Leibovitz, Tahl', '2444', 'NY', '39942');
+var sample_player2 = new Player('Leibovitz, Tahl', '2444', 'NY', '39942');
 
 ko.bindingHandlers.fadeVisible = {
     init: function(element, valueAccessor) {
@@ -100,7 +87,7 @@ function StatsViewModel() {
 
     self.names_found = ko.observableArray([]);
     self.firstName   = ko.observable('');
-    self.lastName    = ko.observable('Sterling');
+    self.lastName    = ko.observable('');
     self.player1     = ko.observable(false);
     self.player2     = ko.observable(false);
 
@@ -118,7 +105,6 @@ function StatsViewModel() {
     self.games    = new StatGroup('Games', "Here's a breakdown of how you did in individual games");
     self.deuces   = new StatGroup('Deuces', "When the score becomes 10-10, the game is tied at deuce. How do you do in those situations?");
 
-
     self.resetStats = function() {
 
         self.tournaments.reset();
@@ -135,7 +121,7 @@ function StatsViewModel() {
             alert('You must enter your last name.');
             return;
         }
-        $.get('/fetch/names?lastName=' + self.lastName(), function(data) {
+        $.get('fetch/names?lastName=' + self.lastName(), function(data) {
             self.names_found(extractNameData(data));
             console.log('Found ' + self.names_found().length + ' names');
         });
@@ -145,7 +131,7 @@ function StatsViewModel() {
         self.player1(player);
 
         console.log('Calling tournaments...')
-        $.get('/fetch/tournaments?id=' + self.player1().pid, function(html) {
+        $.get('fetch/tournaments?id=' + self.player1().pid, function(html) {
 
           $('#loading-area').html(html.replace('<link', '<meta'));
 
@@ -181,8 +167,7 @@ function StatsViewModel() {
 
               if(i>0) {
                   // For each tournament, get the game data
-                  //console.log('Loading tournament: ' + this_tournament.link);
-                  $.get('/fetch/tournament?' + this_tournament.link, function(html) {
+                  $.get('fetch/tournament?' + this_tournament.link, function(html) {
 
                       //console.log('Processing Tournament: ' + this_tournament.name + ' ' + this_tournament.url);
                       $('#loading-area').html('').append(html.replace('<link', '<meta'));
@@ -332,9 +317,7 @@ function StatsViewModel() {
                                       }
 
                                       // Chokes
-
-
-
+                                      // Dominations
 
                                   }
                                   else {
@@ -351,7 +334,7 @@ function StatsViewModel() {
     }
 
     // DEBUG
-    self.selectPlayer(sample_player);
+    //self.selectPlayer(sample_player);
 
     self.startOver = function(player) {
         self.resetStats();
@@ -360,67 +343,14 @@ function StatsViewModel() {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* TODO: More stats:
-  - Tournaments -
-  Biggest gain
-  biggest loss
-  Undefeated (matches)
-
-  - Matches -
-  Domination (Swept under 1 each game)
-  Humiliation (Got wwept under 1 each game)
-  Comebacks / Extreme comebacks
-
-  - Games -
-  Domination (Won 11-0)
-  Humiliation (lost at zero)
-
- */
-function parseGameDataFromHTML(self, html) {
-
-
-}
-
 // Get the name data out of the HTML
-function extractNameData(data) {
+function extractNameData(html) {
 
     var players = [];
     // Take the rows with players...
-    $('tbody > tr:gt(1)', $(data)).each(function() {
+    $('#loading-area').html(html.replace('<link', '<meta'));
+    console.log('How many?: ' + $('#loading-area tbody tr:gt(1)').length)
+    $('#loading-area tbody tr:gt(1)').each(function() {
 
         // Take the rows with name, rating and state
         var player_data = $('td', $(this)).slice(2,5).toArray(),
