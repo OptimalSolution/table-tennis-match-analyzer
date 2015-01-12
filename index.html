@@ -5,12 +5,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta property="fb:app_id" content="18085983762" />
-    <meta property="og:site_name" content="Table Tennis Match Analyzer"/>
+    <meta property="og:site_name" content="TT Match Stats"/>
     <meta property="og:image" content="http://sterlingonlinesolutions.com/group-picture/img/logo-small.png"/>
-    <meta property="og:title" content="Table Tennis Match Analyzer"/>
+    <meta property="og:title" content="TT Match Stats"/>
     <meta property="og:description" content="Examine different parts of your table tennis career: tournament performance, match statistics and game analysis."/>
     <meta property="og:url" content="http://sterlingonlinesolutions.com/table-tennis-match-analyzer/"/>
-    <title>Table Tennis Match Analyzer</title>
+    <title>TT Match Stats</title>
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
@@ -35,7 +35,7 @@
     <div id="fb-root"></div>
     <div class="container">
         <div class="page-header">
-           <h1 class=''>Table Tennis Match Analyzer<span class='beta badge'>BETA</span></h1>
+           <h1 class=''>TT Match Stats<span class='beta badge'>BETA</span></h1>
         </div>
 
         <!-- Step 1: Name Input -->
@@ -103,7 +103,7 @@
                 <div role="tabpanel" class="tab-pane" id="tournaments" data-bind="with: tournaments">
                   <div class="row col-lg-12">
                     <div class="overview-stats list-group">
-                      <a class="list-group-item">Total Tournaments: <span class="pull-right" data-bind="text: played()"></span></a>
+                      <a class="list-group-item active">Total Tournaments: <span class="pull-right" data-bind="text: played()"></span></a>
                       <a class="list-group-item">w/ Winning Ratio: <span class="pull-right" data-bind="text: wins()"></span></a>
                       <a class="list-group-item">w/ Losing Ratio: <span class="pull-right" data-bind="text: losses()"></span></a>
                     </div>
@@ -159,8 +159,8 @@
           </div>
         </div><!-- /Stats -->
     </div><!-- /.container -->
-    <div id="pre-loading-area" style="height: 800px; width: 100%"></div>
-    <div id="loading-area" style="height: 800px; width: 100%"></div>
+    <div id="pre-loading-area" style="display: none"></div>
+    <div id="loading-area" style="display: none"></div>
 
     <!-- Analysis Template -->
     <script type="text/html" id="analysis-template">
